@@ -24,7 +24,7 @@ loadMoreBtn.addEventListener("click", onLoadMore);
 
 async function fetchImages(page) {
   if (page === 1) {
-    clearGallery(); 
+    clearGallery();
   }
 
   showLoader();
@@ -33,6 +33,8 @@ async function fetchImages(page) {
   try {
     const data = await getImagesByQuery(currentQuery, page);
     const { hits, totalHits: hitsTotal } = data;
+    console.log("Fetched page:", page, "Results:", hits.length, "Total:", hitsTotal);
+
 
     if (page === 1) {
       totalHits = hitsTotal;
@@ -55,9 +57,9 @@ async function fetchImages(page) {
 
     const totalPages = Math.ceil(totalHits / perPage);
 
-    if (currentPage < totalPages) {
+    if (currentPage < totalPages && hits.length > 0) {
       showLoadMoreButton();
-    } else {
+    } else if (page !== 1) {
       hideLoadMoreButton();
       iziToast.info({
         title: "End of results",
@@ -73,6 +75,8 @@ async function fetchImages(page) {
   } finally {
     hideLoader();
   }
+
+
 }
 
 async function onFormSubmit(e) {
