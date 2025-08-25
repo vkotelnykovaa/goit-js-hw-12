@@ -17,11 +17,16 @@ const loadMoreBtn = document.querySelector(".load-more");
 let currentPage = 1;
 let currentQuery = "";
 let totalHits = 0;
+const perPage = 40;
 
 form.addEventListener("submit", onFormSubmit);
 loadMoreBtn.addEventListener("click", onLoadMore);
 
 async function fetchImages(page) {
+  if (page === 1) {
+    clearGallery(); 
+  }
+
   showLoader();
   hideLoadMoreButton();
 
@@ -31,7 +36,7 @@ async function fetchImages(page) {
 
     if (page === 1) {
       totalHits = hitsTotal;
-      clearGallery();
+
       if (hits.length === 0) {
         iziToast.error({
           title: "No results",
@@ -39,6 +44,7 @@ async function fetchImages(page) {
         });
         return;
       }
+
       iziToast.success({
         title: "Success",
         message: `We found ${totalHits} images.`,
@@ -47,10 +53,12 @@ async function fetchImages(page) {
 
     createGallery(hits);
 
-    const galleryItemsCount = document.querySelectorAll(".gallery li").length;
-    if (galleryItemsCount < totalHits) {
+    const totalPages = Math.ceil(totalHits / perPage);
+
+    if (currentPage < totalPages) {
       showLoadMoreButton();
-    } else if (galleryItemsCount >= totalHits && page > 1) {
+    } else {
+      hideLoadMoreButton();
       iziToast.info({
         title: "End of results",
         message: "We're sorry, but you've reached the end of search results.",
@@ -70,6 +78,7 @@ async function fetchImages(page) {
 async function onFormSubmit(e) {
   e.preventDefault();
   const query = e.target.elements["search-text"].value.trim();
+
   if (!query) {
     iziToast.error({
       title: "Error",
@@ -77,10 +86,12 @@ async function onFormSubmit(e) {
     });
     return;
   }
+
   currentQuery = query;
   currentPage = 1;
   await fetchImages(currentPage);
-  form.reset();
+
+  e.target.elements["search-text"].value = query;
 }
 
 async function onLoadMore() {
